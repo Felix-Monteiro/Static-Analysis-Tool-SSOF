@@ -4,11 +4,21 @@ def main(argv):
     with open(argv[0], "r") as program_json:
         program_dict = json.loads(program_json.read())
 
+    with open(argv[1], "r") as patterns_json:
+        patterns_dict = json.loads(patterns_json.read())
+
     program = Program()
     program.evaluate(program_dict)
-    program.body[0]
+
     pass
 
+
+def var_is_tainted(var_name, patterns_dict):
+    for vulnerability in patterns_dict:
+        for source in vulnerability["sources"]:
+            if(var_name == source):
+                return True
+    return False
 
 
 class Program:
@@ -121,12 +131,14 @@ class MemberExpression:
     def evaluate(self, statements):
         self.computed = statements["computed"]
        
-        self.object = globals()[statements["object"]["type"]]()
+        object_type = statements["object"]["type"]
+        self.object = globals()[object_type]()
         self.object.evaluate(statements["object"])
-       
+
         self.property = globals()[statements["property"]["type"]]()
         self.property.evaluate(statements["property"])
         pass
+
 
 class CallExpression:
     def __init__(self):

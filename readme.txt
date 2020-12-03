@@ -1,0 +1,26 @@
+sources:
+    MemberExpression:
+        right em assignements (a = document.url)
+        em arguments call expression  (sink(document.url))
+    CallExpression:
+        right em assignements (a = source())
+        em arguments call expression (sink(source))
+
+    right em assignements
+    arguments em call expression
+
+    
+sanitizers:
+    CallExpression:
+        callee = sanitizer (sanitize(source))
+
+sinks:
+    MemberExpression:
+        left em assignements (sink = tainted)
+    CallExpression:
+        callee = sink (sink(tainted))
+        
+
+listas globais:
+    dict_variables(name:raw)
+    
