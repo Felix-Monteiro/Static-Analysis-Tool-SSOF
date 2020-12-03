@@ -4,7 +4,7 @@ sources:
         em arguments call expression  (sink(document.url))
     CallExpression:
         right em assignements (a = source())
-        em arguments call expression (sink(source))
+        em arguments call expression (sink(source) ou a = c(source))
 
     right em assignements
     arguments em call expression
