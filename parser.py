@@ -1,7 +1,4 @@
-import ast
 import json
-import grammar
-from pprint import pprint
 
 def main(argv):
     with open(argv[0], "r") as program_json:
