@@ -38,6 +38,7 @@ class State:
     def var_is_tainted(self, var_name):
         return(self.tainted_vars.get(var_name))
 
+    # is the possible source in patterns
     def is_source(self, possible_source):
         for vulnerability in self.patterns:
             for source in vulnerability["sources"]:
@@ -45,6 +46,7 @@ class State:
                     return True
         return False
 
+    # is the possible sanitizer in patterns
     def is_sanitizer(self, possible_sanitizer):
         for vulnerability in self.patterns:
             for sanitizer in vulnerability["sanitizers"]:
@@ -73,16 +75,29 @@ class State:
                     break
         pass
 
+    # add vulnerability to output
+    def add_vuln(self, source, sink):
+        if(source.find("(") == -1):
+            self.output.append({'source':source,'sink':sink})
+        else:
+            sanitizer, source = self.get_sanitizer_and_source(source) 
+            self.output.append({'source': source, 'sink': sink, 'sanitizer':sanitizer})
+        pass
+
+    # get sanitized source and return list [santizer, source]
     def get_sanitizer_and_source(self, sanitized_source):
         return sanitized_source.split('(')
 
-    def sanitize(self, sanitizer, sources):
+    # receives sanitizer and list of sources to sanitize
+    def sanitize_sources(self, sanitizer, sources):
         sanitized_sources = []
         for source in sources:
-            sanitized_sources.append(self.check_sanitizer(sanitizer, source))
+            sanitized_sources.append(self.sanitize_source(sanitizer, source))
         return sanitized_sources
     
-    def check_sanitizer(self, our_sanitizer, our_source):
+    # sanitize a single source with sanitizer
+    # if sanitizer and source are of the same vulnerability then add sanitizer
+    def sanitize_source(self, our_sanitizer, our_source):
         sanitizers = []
         for vulnerability in self.patterns:
             if(our_source.__str__() in vulnerability["sources"]):
@@ -92,14 +107,7 @@ class State:
             return self.add_sanitizer(our_source, our_sanitizer)
         return our_source
 
-    def add_vuln(self, source, sink):
-        if(source.find("(") == -1):
-            self.output.append({'source':source,'sink':sink})
-        else:
-            sanitizer, source = self.get_sanitizer_and_source(source) 
-            self.output.append({'source': source, 'sink': sink, 'sanitizer':sanitizer})
-        pass
-
+    # source -> sanitizer(source
     def add_sanitizer(self, source, sanitizer):
         return sanitizer + "(" + source
 
@@ -327,7 +335,7 @@ class CallExpression:
             sources.extend(res)
 
         if(state.is_sanitizer(callee) and sources):
-            sources = state.sanitize(callee, sources)
+            sources = state.sanitize_sources(callee, sources)
 
         return sources
 
