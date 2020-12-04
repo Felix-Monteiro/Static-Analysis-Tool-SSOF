@@ -21,6 +21,7 @@ class State:
     def __init__(self):
         self.variables = {}
         self.tainted_vars = {}
+        self.scope = []
         self.patterns = None
         self.output = []
         pass
@@ -29,20 +30,31 @@ class State:
         self.patterns = patterns
         pass
 
+    def add_variable(self, var_name, raw):
+        self.variables[var_name] = raw
+        pass
+
     def add_tainted_var(self, var_name, source):
         self.tainted_vars[var_name] = source
         pass
 
+    # append sources that are tainting the current scope 
+    def add_scope(self, sources):
+        self.scope.extend(sources)
+        pass
+
+    # remove sources that are no longer tainting the current scope
+    def remove_a_scope(self, sources):
+        for source in sources:
+            self.scope.remove(source)
+        pass
+    
     def remove_tainted_var(self, var_name):
         self.tainted_vars.pop(var_name)
         pass
 
     def var_is_tainted(self, var_name):
         return(self.tainted_vars.get(var_name))
-
-    def add_variable(self, var_name, raw):
-        self.variables[var_name] = raw
-        pass
 
     # is the possible source in patterns
     def is_source(self, possible_source):
@@ -148,6 +160,15 @@ class BlockStatement:
         self.body = []
         pass
 
+    def __str__(self):
+        string = "{ \n"
+        for statement in self.body:
+            string += "    " + statement.__str__() + "\n" 
+        return string + "}"
+
+    def __repr__(self):
+        return self.__str__()
+
     def parse(self, statements):
         for statement in statements["body"]:
             statement_obj = globals()[statement["type"]]()
@@ -181,12 +202,18 @@ class IfStatement:
     def parse(self, statements):
         self.test = globals()[statements["test"]["type"]]()
         self.test.parse(statements["test"])
+        sources = self.test.is_source()
         
+        state.add_scope(sources)
+
         self.consequent = globals()[statements["consequent"]["type"]]()
         self.consequent.parse(statements["consequent"])
-        
-        self.alternate = globals()[statements["alternate"]["type"]]()
-        self.alternate.parse(statements["alternate"])
+
+        if(self.alternate):
+            self.alternate = globals()[statements["alternate"]["type"]]()
+            self.alternate.parse(statements["alternate"])
+
+        state.remove_a_scope(sources)
         pass
 
 
@@ -195,6 +222,13 @@ class ExpressionStatement:
         self.expression = None
         self.directive = None
         pass
+
+    def __str__(self):
+        return self.expression.__str__() + (self.directive if self.directive != None else "")
+
+    def __repr__(self):
+        return self.__str__()
+    
 
     def parse(self, statements):
         self.expression = globals()[statements["expression"]["type"]]()
@@ -226,6 +260,8 @@ class AssignmentExpression:
         self.right.parse(statements["right"])
 
         sources = self.right.is_source()
+        # add sources that are tainting the scope
+        sources.extend(state.scope)
         
         state.add_variable(self.left.__str__(), self.right.__str__())
         # is right has sources then had variable to tainted variables
@@ -344,6 +380,9 @@ class CallExpression:
             # get args that are sources
             sources.extend(argument_obj.is_source())
         
+        # add sources that are tainting the scope
+        sources.extend(state.scope)
+
         for source in sources:
             state.check_sink(self.callee.__str__(),source)
         pass

@@ -21,6 +21,5 @@ sinks:
         callee = sink (sink(tainted))
         
 
-listas globais:
-    dict_variables(name:raw)
+IfStatement:
     
