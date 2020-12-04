@@ -13,6 +13,7 @@ def main(argv):
     program.parse(program_dict)
     print(state.output)
     print(state.tainted_vars)
+    print(state.variables)
     pass
 
 
@@ -59,39 +60,51 @@ class State:
                     return True
         return False
 
+    # return true if source is sanitized
+    def is_sanitized(self, source):
+        return source.find(":") != -1
+
+    def is_variable(self, var_name):
+        return var_name in self.variables
+
+    def get_variable(self, var_name):
+        return self.variables[var_name]
+
     def check_sink(self,our_sink, our_source):
         sinks = []
-        # get sinks related to this source
+        our_sanitizer = []
+        # if sanitized, get source and sanitizer
+        if(self.is_sanitized(our_source)):
+            res = self.get_sanitizer_and_source(our_source)
+            our_sanitizer = res[0]
+            our_source = res[1]
+        
+        # get sinks related to this source        
         for vulnerability in self.patterns:
-            if(our_source in vulnerability["sources"] and our_source.find('(') == -1):
+            if(our_source in vulnerability["sources"]):
                 sinks = vulnerability["sinks"]
                 break
-            elif(our_source.find('(') != -1 and self.get_sanitizer_and_source(our_source)[1] in vulnerability["sources"]):
-                sinks = vulnerability["sinks"]
 
         # if sink is related to this source, then add it to result
         if(our_sink.find('.') == -1 and our_sink in sinks):
-            self.add_vuln(our_source, our_sink)
+            self.add_vuln(our_source, our_sink, our_sanitizer)
         # for examples like our_sink: document.url.a  sink: document.url 
         elif(our_sink.find('.') != -1):
             for sink in sinks:
                 if(our_sink.find(sink) != -1):
-                    self.add_vuln(our_source, sink)
+                    self.add_vuln(our_source, sink, our_sanitizer)
                     break
         pass
 
     # add vulnerability to output
-    def add_vuln(self, source, sink):
-        if(source.find("(") == -1):
-            self.output.append({'source':source,'sink':sink})
-        else:
-            sanitizer, source = self.get_sanitizer_and_source(source) 
-            self.output.append({'source': source, 'sink': sink, 'sanitizer':sanitizer})
+    def add_vuln(self, source, sink, sanitizer):
+        self.output.append({'source': source, 'sink': sink, 'sanitizer':sanitizer})
         pass
 
     # get sanitized source and return list [santizer, source]
     def get_sanitizer_and_source(self, sanitized_source):
-        return sanitized_source.split('(')
+        return sanitized_source.split(":", 1)
+
 
     # receives sanitizer and list of sources to sanitize
     def sanitize_sources(self, sanitizer, sources):
@@ -114,7 +127,7 @@ class State:
 
     # source -> sanitizer(source
     def add_sanitizer(self, source, sanitizer):
-        return sanitizer + "(" + source
+        return sanitizer + ":" + source
 
 
 
@@ -216,6 +229,7 @@ class AssignmentExpression:
 
         if (left_type == "Identifier"):
             # if left is a variable mark as tainted
+            state.add_variable(self.left.__str__(), self.right.__str__())
             if(sources):
                 state.add_tainted_var(self.left.__str__(), sources)
                 return
@@ -287,6 +301,9 @@ class MemberExpression:
 
         self.property = globals()[statements["property"]["type"]]()
         self.property.parse(statements["property"])
+
+        if(object_type == "Identifier" and state.is_variable(self.object.__str__())):
+            self.object = state.get_variable(self.object.__str__())
         pass
 
     def is_source(self):
