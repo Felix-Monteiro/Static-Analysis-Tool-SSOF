@@ -1,0 +1,11 @@
+[
+  {"vulnerability": "Command Injection",
+  "sources": ["source1", "document.url.b"],
+  "sanitizers": ["escape", "sanitize"],
+  "sinks": ["sink1", "eheh", "document.url"]},
+
+  {"vulnerability": "SQL",
+    "sources": ["source2"],
+    "sanitizers": ["escape"],
+    "sinks": ["sink2"]}
+]

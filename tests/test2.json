@@ -1,0 +1,217 @@
+{
+  "type": "Program",
+  "body": [
+    {
+      "type": "ExpressionStatement",
+      "expression": {
+        "type": "AssignmentExpression",
+        "operator": "=",
+        "left": {
+          "type": "Identifier",
+          "name": "a"
+        },
+        "right": {
+          "type": "MemberExpression",
+          "computed": false,
+          "object": {
+            "type": "MemberExpression",
+            "computed": false,
+            "object": {
+              "type": "Identifier",
+              "name": "document"
+            },
+            "property": {
+              "type": "Identifier",
+              "name": "url"
+            }
+          },
+          "property": {
+            "type": "Identifier",
+            "name": "b"
+          }
+        }
+      }
+    },
+    {
+      "type": "ExpressionStatement",
+      "expression": {
+        "type": "AssignmentExpression",
+        "operator": "=",
+        "left": {
+          "type": "MemberExpression",
+          "computed": false,
+          "object": {
+            "type": "Identifier",
+            "name": "document"
+          },
+          "property": {
+            "type": "Identifier",
+            "name": "url"
+          }
+        },
+        "right": {
+          "type": "CallExpression",
+          "callee": {
+            "type": "Identifier",
+            "name": "ola"
+          },
+          "arguments": [
+            {
+              "type": "CallExpression",
+              "callee": {
+                "type": "MemberExpression",
+                "computed": false,
+                "object": {
+                  "type": "MemberExpression",
+                  "computed": false,
+                  "object": {
+                    "type": "Identifier",
+                    "name": "document"
+                  },
+                  "property": {
+                    "type": "Identifier",
+                    "name": "url"
+                  }
+                },
+                "property": {
+                  "type": "Identifier",
+                  "name": "b"
+                }
+              },
+              "arguments": []
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "ExpressionStatement",
+      "expression": {
+        "type": "AssignmentExpression",
+        "operator": "=",
+        "left": {
+          "type": "MemberExpression",
+          "computed": false,
+          "object": {
+            "type": "Identifier",
+            "name": "document"
+          },
+          "property": {
+            "type": "Identifier",
+            "name": "url"
+          }
+        },
+        "right": {
+          "type": "CallExpression",
+          "callee": {
+            "type": "Identifier",
+            "name": "sink1"
+          },
+          "arguments": [
+            {
+              "type": "CallExpression",
+              "callee": {
+                "type": "Identifier",
+                "name": "source1"
+              },
+              "arguments": [
+                {
+                  "type": "Identifier",
+                  "name": "a"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "ExpressionStatement",
+      "expression": {
+        "type": "AssignmentExpression",
+        "operator": "=",
+        "left": {
+          "type": "Identifier",
+          "name": "b"
+        },
+        "right": {
+          "type": "CallExpression",
+          "callee": {
+            "type": "Identifier",
+            "name": "sink1"
+          },
+          "arguments": [
+            {
+              "type": "Identifier",
+              "name": "a"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "ExpressionStatement",
+      "expression": {
+        "type": "AssignmentExpression",
+        "operator": "=",
+        "left": {
+          "type": "Identifier",
+          "name": "a"
+        },
+        "right": {
+          "type": "Literal",
+          "value": 0,
+          "raw": "0"
+        }
+      }
+    },
+    {
+      "type": "ExpressionStatement",
+      "expression": {
+        "type": "CallExpression",
+        "callee": {
+          "type": "Identifier",
+          "name": "sink1"
+        },
+        "arguments": [
+          {
+            "type": "Identifier",
+            "name": "a"
+          }
+        ]
+      }
+    },
+    {
+      "type": "ExpressionStatement",
+      "expression": {
+        "type": "AssignmentExpression",
+        "operator": "=",
+        "left": {
+          "type": "Identifier",
+          "name": "a"
+        },
+        "right": {
+          "type": "Identifier",
+          "name": "b"
+        }
+      }
+    },
+    {
+      "type": "ExpressionStatement",
+      "expression": {
+        "type": "CallExpression",
+        "callee": {
+          "type": "Identifier",
+          "name": "sink2"
+        },
+        "arguments": [
+          {
+            "type": "Identifier",
+            "name": "a"
+          }
+        ]
+      }
+    }
+  ],
+  "sourceType": "script"
+}

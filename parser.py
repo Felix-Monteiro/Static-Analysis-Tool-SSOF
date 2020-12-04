@@ -46,6 +46,7 @@ class State:
 
     # is the possible source in patterns
     def is_source(self, possible_source):
+        possible_source = self.get_sanitizer_and_source(possible_source)[-1]
         for vulnerability in self.patterns:
             for source in vulnerability["sources"]:
                 if(possible_source.__str__() == source):
@@ -72,12 +73,12 @@ class State:
 
     def check_sink(self,our_sink, our_source):
         sinks = []
-        our_sanitizer = []
+        our_sanitizers = []
         # if sanitized, get source and sanitizer
         if(self.is_sanitized(our_source)):
             res = self.get_sanitizer_and_source(our_source)
-            our_sanitizer = res[0]
-            our_source = res[1]
+            our_sanitizers = res[:-1]
+            our_source = res[-1]
         
         # get sinks related to this source        
         for vulnerability in self.patterns:
@@ -87,12 +88,12 @@ class State:
 
         # if sink is related to this source, then add it to result
         if(our_sink.find('.') == -1 and our_sink in sinks):
-            self.add_vuln(our_source, our_sink, our_sanitizer)
+            self.add_vuln(our_source, our_sink, our_sanitizers)
         # for examples like our_sink: document.url.a  sink: document.url 
         elif(our_sink.find('.') != -1):
             for sink in sinks:
                 if(our_sink.find(sink) != -1):
-                    self.add_vuln(our_source, sink, our_sanitizer)
+                    self.add_vuln(our_source, sink, our_sanitizers)
                     break
         pass
 
@@ -103,8 +104,7 @@ class State:
 
     # get sanitized source and return list [santizer, source]
     def get_sanitizer_and_source(self, sanitized_source):
-        return sanitized_source.split(":", 1)
-
+        return sanitized_source.split(":")
 
     # receives sanitizer and list of sources to sanitize
     def sanitize_sources(self, sanitizer, sources):
@@ -118,7 +118,7 @@ class State:
     def sanitize_source(self, our_sanitizer, our_source):
         sanitizers = []
         for vulnerability in self.patterns:
-            if(our_source.__str__() in vulnerability["sources"]):
+            if(self.get_sanitizer_and_source(our_source.__str__())[-1] in vulnerability["sources"]):
                 sanitizers = vulnerability["sanitizers"]
                 break
         if(our_sanitizer in sanitizers):
@@ -226,20 +226,19 @@ class AssignmentExpression:
         self.right.parse(statements["right"])
 
         sources = self.right.is_source()
+        
+        state.add_variable(self.left.__str__(), self.right.__str__())
+        # is right has sources then had variable to tainted variables
+        if(sources):
+            state.add_tainted_var(self.left.__str__(), sources)
 
-        if (left_type == "Identifier"):
-            # if left is a variable mark as tainted
-            state.add_variable(self.left.__str__(), self.right.__str__())
-            if(sources):
-                state.add_tainted_var(self.left.__str__(), sources)
-                return
-            # if left is a variable that was tainted now it is not
-            # because it was assigned something with no sources
-            elif(state.var_is_tainted(self.left.__str__())):
-                state.remove_tainted_var(self.left.__str__())
-                return
+        # if left is a variable that was tainted now it is not
+        # because it was assigned something with no sources
+        if (not sources and state.var_is_tainted(self.left.__str__())):
+            state.remove_tainted_var(self.left.__str__())
 
-        elif(left_type == "MemberExpression"): 
+        # left sid MemberExpression can be 
+        elif(left_type == "MemberExpression"):
             for source in sources:
                 state.check_sink(self.left.__str__(),source.__str__())
         pass
@@ -308,10 +307,13 @@ class MemberExpression:
 
     def is_source(self):
         sources = []
-        if(state.is_source(self.object)):
-            sources.extend(self.__str__())
-        elif (state.is_source(self)):
+        if(state.is_source(self.object.__str__())):
             sources.append(self.__str__())
+        elif(state.is_source(self.__str__())):
+            sources.append(self.__str__())
+        if(state.is_variable(self.__str__())):
+            sources.extend(state.var_is_tainted(self.__str__()))
+
         return sources
 
 
@@ -331,6 +333,8 @@ class CallExpression:
     def parse(self, statements):
         self.callee = globals()[statements["callee"]["type"]]()
         self.callee.parse(statements["callee"])
+        if(state.is_variable(self.callee.__str__())):
+            self.callee = state.get_variable(self.callee.__str__())
         sources = []
         for argument in statements["arguments"]:
             argument_type = argument["type"]
@@ -341,8 +345,7 @@ class CallExpression:
             sources.extend(argument_obj.is_source())
         
         for source in sources:
-            state.check_sink(self.callee.__str__(),source.__str__())
-
+            state.check_sink(self.callee.__str__(),source)
         pass
 
     def is_source(self):
