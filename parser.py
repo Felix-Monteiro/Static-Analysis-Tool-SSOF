@@ -18,6 +18,7 @@ def main(argv):
 
 class State:
     def __init__(self):
+        self.variables = {}
         self.tainted_vars = {}
         self.patterns = None
         self.output = []
@@ -37,6 +38,10 @@ class State:
 
     def var_is_tainted(self, var_name):
         return(self.tainted_vars.get(var_name))
+
+    def add_variable(self, var_name, raw):
+        self.variables[var_name] = raw
+        pass
 
     # is the possible source in patterns
     def is_source(self, possible_source):
@@ -209,21 +214,20 @@ class AssignmentExpression:
 
         sources = self.right.is_source()
 
-        # if left is a variable that was tainted now it is not
-        # because it was assigned something with no sources
-        if(not sources and left_type == "Identifier" and state.var_is_tainted(self.left.__str__())):
-            state.remove_tainted_var(self.left.__str__())
-            return
-        
-        # if left is a variable mark as tainted
-        if(sources and left_type == "Identifier"):
-            state.add_tainted_var(self.left.__str__(), sources)
-            return
-        
-        for source in sources:
-            # if left is member expression it can be a sink
-            if(left_type == "MemberExpression"):
-                state.check_sink(self.left.__str__(),source.__str__())
+        if (left_type == "Identifier"):
+            # if left is a variable mark as tainted
+            if(sources):
+                state.add_tainted_var(self.left.__str__(), sources)
+                return
+            # if left is a variable that was tainted now it is not
+            # because it was assigned something with no sources
+            elif(state.var_is_tainted(self.left)):
+                state.remove_tainted_var(self.left)
+                return
+
+        elif(left_type == "MemberExpression"): 
+            for source in sources:
+                state.check_sink(self.left,source)
         pass
 
     def is_source(self):
