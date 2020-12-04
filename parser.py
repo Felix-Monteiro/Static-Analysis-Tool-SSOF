@@ -45,15 +45,25 @@ class State:
                     return True
         return False
 
+    def is_sanitizer(self, possible_sanitizer):
+        for vulnerability in self.patterns:
+            for sanitizer in vulnerability["sanitizers"]:
+                if(possible_sanitizer.__str__() == sanitizer):
+                    return True
+        return False
+
     def check_sink(self,our_sink, our_source):
         sinks = []
         # get sinks related to this source
         for vulnerability in self.patterns:
-            if(our_source.__str__() in vulnerability["sources"]):
+            if(our_source in vulnerability["sources"] and our_source.find('(') == -1):
                 sinks = vulnerability["sinks"]
                 break
+            elif(our_source.find('(') != -1 and self.get_sanitizer_and_source(our_source)[1] in vulnerability["sources"]):
+                sinks = vulnerability["sinks"]
+
         # if sink is related to this source, then add it to result
-        if(our_sink.find('.') ==  -1 and our_sink in sinks):
+        if(our_sink.find('.') == -1 and our_sink in sinks):
             self.add_vuln(our_source, our_sink)
         # for examples like our_sink: document.url.a  sink: document.url 
         elif(our_sink.find('.') != -1):
@@ -63,9 +73,36 @@ class State:
                     break
         pass
 
+    def get_sanitizer_and_source(self, sanitized_source):
+        return sanitized_source.split('(')
+
+    def sanitize(self, sanitizer, sources):
+        sanitized_sources = []
+        for source in sources:
+            sanitized_sources.append(self.check_sanitizer(sanitizer, source))
+        return sanitized_sources
+    
+    def check_sanitizer(self, our_sanitizer, our_source):
+        sanitizers = []
+        for vulnerability in self.patterns:
+            if(our_source.__str__() in vulnerability["sources"]):
+                sanitizers = vulnerability["sanitizers"]
+                break
+        if(our_sanitizer in sanitizers):
+            return self.add_sanitizer(our_source, our_sanitizer)
+        return our_source
+
     def add_vuln(self, source, sink):
-        self.output.append({'source':source,'sink':sink})
+        if(source.find("(") == -1):
+            self.output.append({'source':source,'sink':sink})
+        else:
+            sanitizer, source = self.get_sanitizer_and_source(source) 
+            self.output.append({'source': source, 'sink': sink, 'sanitizer':sanitizer})
         pass
+
+    def add_sanitizer(self, source, sanitizer):
+        return sanitizer + "(" + source
+
 
 
 class Program:
@@ -173,6 +210,7 @@ class AssignmentExpression:
         # if left is a variable mark as tainted
         if(sources and left_type == "Identifier"):
             state.add_tainted_var(self.left.__str__(), sources)
+            return
         
         for source in sources:
             # if left is member expression it can be a sink
@@ -242,9 +280,9 @@ class MemberExpression:
     def is_source(self):
         sources = []
         if(state.is_source(self.object)):
-            sources.extend(self)
+            sources.extend(self.__str__())
         elif (state.is_source(self)):
-            sources.append(self)
+            sources.append(self.__str__())
         return sources
 
 
@@ -266,7 +304,8 @@ class CallExpression:
         self.callee.parse(statements["callee"])
         sources = []
         for argument in statements["arguments"]:
-            argument_obj = globals()[argument["type"]]()
+            argument_type = argument["type"]
+            argument_obj = globals()[argument_type]()
             self.arguments.append(argument_obj)
             argument_obj.parse(argument)
             # get args that are sources
@@ -274,18 +313,23 @@ class CallExpression:
         
         for source in sources:
             state.check_sink(self.callee.__str__(),source.__str__())
-            
+
         pass
 
     def is_source(self):
         sources = []
-        if(state.is_source(self.callee)):
-            sources.append(self.callee)
+        callee = self.callee.__str__()
+        if(state.is_source(callee)):
+            sources.append(callee)
+        
         for argument in self.arguments:
             res = argument.is_source()
             sources.extend(res)
-        return sources
 
+        if(state.is_sanitizer(callee) and sources):
+            sources = state.sanitize(callee, sources)
+
+        return sources
 
 class Identifier:
     def __init__(self):
