@@ -221,13 +221,13 @@ class AssignmentExpression:
                 return
             # if left is a variable that was tainted now it is not
             # because it was assigned something with no sources
-            elif(state.var_is_tainted(self.left)):
-                state.remove_tainted_var(self.left)
+            elif(state.var_is_tainted(self.left.__str__())):
+                state.remove_tainted_var(self.left.__str__())
                 return
 
         elif(left_type == "MemberExpression"): 
             for source in sources:
-                state.check_sink(self.left,source)
+                state.check_sink(self.left.__str__(),source.__str__())
         pass
 
     def is_source(self):
