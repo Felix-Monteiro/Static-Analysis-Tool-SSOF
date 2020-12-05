@@ -24,6 +24,7 @@ class State:
         self.scope = []
         self.patterns = None
         self.output = []
+        self.just_parse = False
         pass
 
     def add_patterns(self, patterns):
@@ -51,6 +52,18 @@ class State:
     
     def remove_tainted_var(self, var_name):
         self.tainted_vars.pop(var_name)
+        pass
+
+    # When we want to only parse, not find sinks
+    # for example, the while statement. We first want to 
+    # parse everything then look for sinks
+    # For the cases where the source is after the sink in a while statement
+    # while(a) {
+    #    sink(b)
+    #    b = source()
+    # }
+    def set_just_parse(self, boolean):
+        self.just_parse = boolean
         pass
 
     def var_is_tainted(self, var_name):
@@ -186,11 +199,47 @@ class WhileStatement:
     def parse(self, statements):
         self.test = globals()[statements["test"]["type"]]()
         self.test.parse(statements["test"])
+        sources = self.test.is_source()
 
+        state.add_scope(sources)
+        prev_just_parse = state.just_parse
+        state.set_just_parse(True)
         self.body = globals()[statements["body"]["type"]]()
         self.body.parse(statements["body"])
+        state.set_just_parse(False)
+        self.body.parse(statements["body"])
+
+        state.set_just_parse(prev_just_parse)
+        state.remove_a_scope(sources)
         pass
         
+
+class SequenceExpression:
+    def __init__(self):
+        self.expressions = []
+        pass
+
+    def __str__(self):
+        string = ""
+        for expression in self.expressions:
+            string += expression.__str__() + "," 
+        return string[:-1]
+
+    def __repr__(self):
+        return self.__str__()
+
+    def parse(self, statements):
+        for statement in statements["expressions"]:
+            statement_obj = globals()[statement["type"]]()
+            statement_obj.parse(statement)
+            self.expressions.append(statement_obj)
+        pass
+
+    def is_source(self):
+        sources = []
+        for expression in self.expressions:
+            sources.extend(expression.is_source())
+        return list(set(sources))
 
 class IfStatement:
     def __init__(self):
@@ -209,10 +258,9 @@ class IfStatement:
         self.consequent = globals()[statements["consequent"]["type"]]()
         self.consequent.parse(statements["consequent"])
 
+        self.alternate = globals()[statements["alternate"]["type"]]()
         if(self.alternate):
-            self.alternate = globals()[statements["alternate"]["type"]]()
             self.alternate.parse(statements["alternate"])
-
         state.remove_a_scope(sources)
         pass
 
@@ -229,12 +277,13 @@ class ExpressionStatement:
     def __repr__(self):
         return self.__str__()
     
-
     def parse(self, statements):
         self.expression = globals()[statements["expression"]["type"]]()
         self.expression.parse(statements["expression"])
         pass
 
+    def is_source(self):
+        return self.expression.is_source()
 
 class AssignmentExpression:
     def __init__(self):
@@ -273,8 +322,8 @@ class AssignmentExpression:
         if (not sources and state.var_is_tainted(self.left.__str__())):
             state.remove_tainted_var(self.left.__str__())
 
-        # left sid MemberExpression can be 
-        elif(left_type == "MemberExpression"):
+        # left side MemberExpression can be source
+        elif(left_type == "MemberExpression" and not state.just_parse):
             for source in sources:
                 state.check_sink(self.left.__str__(),source.__str__())
         pass
@@ -310,7 +359,7 @@ class BinaryExpression:
         sources = []
         sources.extend(self.right.is_source())
         sources.extend(self.left.is_source())
-        return sources
+        return list(set(sources))
 
 
 
@@ -350,7 +399,7 @@ class MemberExpression:
         if(state.is_variable(self.__str__())):
             sources.extend(state.var_is_tainted(self.__str__()))
 
-        return sources
+        return list(set(sources))
 
 
 class CallExpression:
@@ -382,9 +431,11 @@ class CallExpression:
         
         # add sources that are tainting the scope
         sources.extend(state.scope)
-
-        for source in sources:
-            state.check_sink(self.callee.__str__(),source)
+        # remove repeated values
+        sources = list(set(sources))
+        if(not state.just_parse):
+            for source in sources:
+                state.check_sink(self.callee.__str__(),source)
         pass
 
     def is_source(self):
@@ -400,7 +451,7 @@ class CallExpression:
         if(state.is_sanitizer(callee) and sources):
             sources = state.sanitize_sources(callee, sources)
 
-        return sources
+        return list(set(sources))
 
 class Identifier:
     def __init__(self):

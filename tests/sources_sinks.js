@@ -1,0 +1,1 @@
+a = document.url.b + sink1
