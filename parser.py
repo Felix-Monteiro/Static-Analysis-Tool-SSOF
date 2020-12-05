@@ -258,10 +258,9 @@ class IfStatement:
         self.consequent = globals()[statements["consequent"]["type"]]()
         self.consequent.parse(statements["consequent"])
 
+        self.alternate = globals()[statements["alternate"]["type"]]()
         if(self.alternate):
-            self.alternate = globals()[statements["alternate"]["type"]]()
             self.alternate.parse(statements["alternate"])
-
         state.remove_a_scope(sources)
         pass
 
