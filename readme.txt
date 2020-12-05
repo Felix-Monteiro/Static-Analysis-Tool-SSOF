@@ -21,5 +21,6 @@ sinks:
         callee = sink (sink(tainted))
         
 
-IfStatement:
-    
+now get only unique sources 
+for example if sink1(source1(),source1(),source1(),source1()) 
+only output one source: source1()

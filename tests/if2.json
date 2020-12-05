@@ -14,9 +14,18 @@
           "type": "CallExpression",
           "callee": {
             "type": "Identifier",
-            "name": "source2"
+            "name": "escape"
           },
-          "arguments": []
+          "arguments": [
+            {
+              "type": "CallExpression",
+              "callee": {
+                "type": "Identifier",
+                "name": "source2"
+              },
+              "arguments": []
+            }
+          ]
         }
       }
     },
@@ -33,9 +42,18 @@
           "type": "CallExpression",
           "callee": {
             "type": "Identifier",
-            "name": "source2"
+            "name": "escape"
           },
-          "arguments": []
+          "arguments": [
+            {
+              "type": "CallExpression",
+              "callee": {
+                "type": "Identifier",
+                "name": "source2"
+              },
+              "arguments": []
+            }
+          ]
         }
       },
       "consequent": {
