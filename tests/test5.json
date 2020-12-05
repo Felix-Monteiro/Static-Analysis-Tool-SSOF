@@ -27,17 +27,24 @@
     {
       "type": "ExpressionStatement",
       "expression": {
-        "type": "CallExpression",
-        "callee": {
-          "type": "Identifier",
-          "name": "sink1"
-        },
-        "arguments": [
-          {
+        "type": "AssignmentExpression",
+        "operator": "=",
+        "left": {
+          "type": "MemberExpression",
+          "computed": false,
+          "object": {
             "type": "Identifier",
-            "name": "a"
+            "name": "document"
+          },
+          "property": {
+            "type": "Identifier",
+            "name": "innerHTML"
           }
-        ]
+        },
+        "right": {
+          "type": "Identifier",
+          "name": "a"
+        }
       }
     }
   ],
