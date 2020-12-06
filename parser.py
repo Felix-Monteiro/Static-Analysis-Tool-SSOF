@@ -12,8 +12,8 @@ def main(argv):
     program = Program()
     program.parse(program_dict)
     print(state.output)
-    print(state.tainted_vars)
-    print(state.variables)
+    # print(state.tainted_vars)
+    # print(state.variables)
     pass
 
 
@@ -139,22 +139,23 @@ class State:
         for vulnerability in self.patterns:
             if(our_source in vulnerability["sources"]):
                 sinks = vulnerability["sinks"]
+                our_vulnerability = vulnerability["vulnerability"]
                 break
 
         # if sink is related to this source, then add it to result
         if(our_sink.find('.') == -1 and our_sink in sinks):
-            self.add_vuln(our_source, our_sink, our_sanitizers)
+            self.add_vuln(our_vulnerability, our_source, our_sink, our_sanitizers)
         # for examples like our_sink: document.url.a  sink: document.url 
         elif(our_sink.find('.') != -1):
             for sink in sinks:
                 if(our_sink.find(sink) != -1):
-                    self.add_vuln(our_source, sink, our_sanitizers)
+                    self.add_vuln(our_vulnerability, our_source, sink, our_sanitizers)
                     break
         pass
 
     # add vulnerability to output
-    def add_vuln(self, source, sink, sanitizer):
-        self.output.append({'source': source, 'sink': sink, 'sanitizer':sanitizer})
+    def add_vuln(self, vulnerability, source, sink, sanitizer):
+        self.output.append({'vulnerability': vulnerability ,'source': source, 'sink': sink, 'sanitizer':sanitizer})
         pass
 
     # get sanitized source and return list [santizer, source]
@@ -189,7 +190,6 @@ class State:
     # source -> sanitizer:source
     def add_sanitizer(self, source, sanitizer):
         return sanitizer + ":" + source
-
 
 
 class Program:
