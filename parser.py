@@ -33,7 +33,10 @@ class State:
         pass
 
     def add_variable(self, var_name, raw):
-        self.variables[var_name] = raw
+        if(self.in_optional and self.is_variable(var_name)):
+            self.variables[var_name].append(raw)
+        else :
+            self.variables[var_name] = [raw]
         pass
 
     def add_tainted_var(self, var_name, sources):
@@ -513,8 +516,11 @@ class CallExpression:
 
         if(state.is_variable(self.callee.__str__())):
             self.callee = state.get_variable(self.callee.__str__())
+        else:
+            self.callee = [self.callee.__str__()]
 
         sources = []
+
         for argument in statements["arguments"]:
             argument_type = argument["type"]
             argument_obj = globals()[argument_type]()
@@ -523,31 +529,33 @@ class CallExpression:
             # get args that are sources
             sources.extend(argument_obj.is_source())
             
-        if(state.is_sanitizer(self.callee.__str__())):
-            for argument in self.arguments:
-                argument.sanitize(self.callee.__str__())
-        
+        for possible_callee in self.callee:
+            if(state.is_sanitizer(possible_callee)):
+                for argument in self.arguments:
+                    argument.sanitize(possible_callee)
+            
         # add sources that are tainting the scope
         sources.extend(state.scope)
         # remove repeated values
         sources = list(set(sources))
         if(not state.just_parse):
-            for source in sources:
-                state.check_sink(self.callee.__str__(),source)
+            for possible_callee in self.callee:
+                for source in sources:
+                    state.check_sink(possible_callee,source)
         pass
 
     def is_source(self):
         sources = []
-        callee = self.callee.__str__()
-        if(state.is_source(callee)):
-            sources.append(callee)
-        
         for argument in self.arguments:
-            res = argument.is_source()
-            sources.extend(res)
+                res = argument.is_source()
+                sources.extend(res)
 
-        if(state.is_sanitizer(callee) and sources):
-            sources = state.sanitize_sources(callee, sources)
+        for possible_callee in self.callee:
+            if(state.is_source(possible_callee)):
+                sources.append(possible_callee)
+        
+            if(state.is_sanitizer(possible_callee) and sources):
+                sources = state.sanitize_sources(possible_callee, sources)
 
         return list(set(sources))
 

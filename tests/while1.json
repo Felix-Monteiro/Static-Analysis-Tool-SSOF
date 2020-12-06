@@ -52,6 +52,22 @@
             }
           },
           {
+            "type": "ExpressionStatement",
+            "expression": {
+              "type": "AssignmentExpression",
+              "operator": "=",
+              "left": {
+                "type": "Identifier",
+                "name": "b"
+              },
+              "right": {
+                "type": "Literal",
+                "value": 3,
+                "raw": "3"
+              }
+            }
+          },
+          {
             "type": "IfStatement",
             "test": {
               "type": "CallExpression",
@@ -118,6 +134,70 @@
           }
         ]
       }
+    },
+    {
+      "type": "WhileStatement",
+      "test": {
+        "type": "Identifier",
+        "name": "ads"
+      },
+      "body": {
+        "type": "BlockStatement",
+        "body": [
+          {
+            "type": "ExpressionStatement",
+            "expression": {
+              "type": "AssignmentExpression",
+              "operator": "=",
+              "left": {
+                "type": "Identifier",
+                "name": "b"
+              },
+              "right": {
+                "type": "MemberExpression",
+                "computed": false,
+                "object": {
+                  "type": "Identifier",
+                  "name": "document"
+                },
+                "property": {
+                  "type": "Identifier",
+                  "name": "url"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "IfStatement",
+      "test": {
+        "type": "Identifier",
+        "name": "asd"
+      },
+      "consequent": {
+        "type": "BlockStatement",
+        "body": [
+          {
+            "type": "ExpressionStatement",
+            "expression": {
+              "type": "AssignmentExpression",
+              "operator": "=",
+              "left": {
+                "type": "Identifier",
+                "name": "a"
+              },
+              "right": {
+                "type": "Literal",
+                "value": 3,
+                "raw": "3"
+              }
+            }
+          }
+        ]
+      },
+      "alternate": null
     }
   ],
   "sourceType": "script"

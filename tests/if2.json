@@ -2,74 +2,14 @@
   "type": "Program",
   "body": [
     {
-      "type": "ExpressionStatement",
-      "expression": {
-        "type": "AssignmentExpression",
-        "operator": "=",
-        "left": {
-          "type": "Identifier",
-          "name": "a"
-        },
-        "right": {
-          "type": "CallExpression",
-          "callee": {
-            "type": "Identifier",
-            "name": "escape"
-          },
-          "arguments": [
-            {
-              "type": "CallExpression",
-              "callee": {
-                "type": "Identifier",
-                "name": "source2"
-              },
-              "arguments": []
-            }
-          ]
-        }
-      }
-    },
-    {
       "type": "IfStatement",
       "test": {
-        "type": "AssignmentExpression",
-        "operator": "=",
-        "left": {
-          "type": "Identifier",
-          "name": "b"
-        },
-        "right": {
-          "type": "CallExpression",
-          "callee": {
-            "type": "Identifier",
-            "name": "escape"
-          },
-          "arguments": [
-            {
-              "type": "CallExpression",
-              "callee": {
-                "type": "Identifier",
-                "name": "source2"
-              },
-              "arguments": []
-            }
-          ]
-        }
+        "type": "Identifier",
+        "name": "hello"
       },
       "consequent": {
         "type": "BlockStatement",
         "body": [
-          {
-            "type": "ExpressionStatement",
-            "expression": {
-              "type": "CallExpression",
-              "callee": {
-                "type": "Identifier",
-                "name": "sink2"
-              },
-              "arguments": []
-            }
-          },
           {
             "type": "ExpressionStatement",
             "expression": {
@@ -80,15 +20,165 @@
                 "name": "a"
               },
               "right": {
-                "type": "Literal",
-                "value": 0,
-                "raw": "0"
+                "type": "CallExpression",
+                "callee": {
+                  "type": "Identifier",
+                  "name": "source1"
+                },
+                "arguments": []
               }
+            }
+          },
+          {
+            "type": "ExpressionStatement",
+            "expression": {
+              "type": "CallExpression",
+              "callee": {
+                "type": "Identifier",
+                "name": "sink1"
+              },
+              "arguments": [
+                {
+                  "type": "Identifier",
+                  "name": "a"
+                }
+              ]
             }
           }
         ]
       },
-      "alternate": null
+      "alternate": {
+        "type": "IfStatement",
+        "test": {
+          "type": "Identifier",
+          "name": "aasdas"
+        },
+        "consequent": {
+          "type": "BlockStatement",
+          "body": [
+            {
+              "type": "ExpressionStatement",
+              "expression": {
+                "type": "CallExpression",
+                "callee": {
+                  "type": "Identifier",
+                  "name": "sink1"
+                },
+                "arguments": [
+                  {
+                    "type": "Identifier",
+                    "name": "a"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "ExpressionStatement",
+              "expression": {
+                "type": "CallExpression",
+                "callee": {
+                  "type": "Identifier",
+                  "name": "sink2"
+                },
+                "arguments": [
+                  {
+                    "type": "Identifier",
+                    "name": "a"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "ExpressionStatement",
+              "expression": {
+                "type": "AssignmentExpression",
+                "operator": "=",
+                "left": {
+                  "type": "Identifier",
+                  "name": "a"
+                },
+                "right": {
+                  "type": "CallExpression",
+                  "callee": {
+                    "type": "Identifier",
+                    "name": "source2"
+                  },
+                  "arguments": []
+                }
+              }
+            }
+          ]
+        },
+        "alternate": {
+          "type": "BlockStatement",
+          "body": [
+            {
+              "type": "ExpressionStatement",
+              "expression": {
+                "type": "CallExpression",
+                "callee": {
+                  "type": "Identifier",
+                  "name": "sink2"
+                },
+                "arguments": [
+                  {
+                    "type": "Identifier",
+                    "name": "a"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "ExpressionStatement",
+              "expression": {
+                "type": "CallExpression",
+                "callee": {
+                  "type": "Identifier",
+                  "name": "sanitize"
+                },
+                "arguments": [
+                  {
+                    "type": "MemberExpression",
+                    "computed": false,
+                    "object": {
+                      "type": "Identifier",
+                      "name": "document"
+                    },
+                    "property": {
+                      "type": "Identifier",
+                      "name": "url"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "ExpressionStatement",
+      "expression": {
+        "type": "CallExpression",
+        "callee": {
+          "type": "Identifier",
+          "name": "sink1"
+        },
+        "arguments": [
+          {
+            "type": "MemberExpression",
+            "computed": false,
+            "object": {
+              "type": "Identifier",
+              "name": "document"
+            },
+            "property": {
+              "type": "Identifier",
+              "name": "url"
+            }
+          }
+        ]
+      }
     },
     {
       "type": "ExpressionStatement",

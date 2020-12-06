@@ -1,14 +1,11 @@
-if(source2()) {
+if (bla) {
+    sink1(a)
     a = source1()
+} else if (source1()){
+    a = source2()
+    sanitize(a)
+    escape(a)
+    sink2(a)
 } else {
-    b = sink1
-    c = source1()
-    sanitize(c)
-    sink1(c)
+    sink1(a)
 }
-sink1(a)
-sanitize(a)
-escape(inner.html)
-b(a)
-sink2(inner.html)
-sink2(b)
