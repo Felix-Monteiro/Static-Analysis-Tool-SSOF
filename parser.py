@@ -487,7 +487,12 @@ class MemberExpression:
                 elif(state.is_source(option_member)):
                     sources.append(option_member)
 
+        elif(state.is_source(self.object.__str__())):
+            sources.append(self.object.__str__())
+        elif(state.is_source(self.__str__())):
+            sources.append(self.__str__())
         return list(set(sources))
+
        
     def sanitize(self, sanitizer_name):
         member_name = self.__str__()
@@ -535,6 +540,7 @@ class CallExpression:
             self.arguments.append(argument_obj)
             argument_obj.parse(argument)
             # get args that are sources
+            print(argument_obj)
             sources.extend(argument_obj.is_source())
             
         for possible_callee in self.callee:
