@@ -1,5 +1,5 @@
 import json
-
+import pprint
 def main(argv):
     with open(argv[0], "r") as program_json:
         program_dict = json.loads(program_json.read())
@@ -11,7 +11,8 @@ def main(argv):
     state.add_patterns(patterns_dict)
     program = Program()
     program.parse(program_dict)
-    print(state.output)
+    pp = pprint.PrettyPrinter(indent=2)
+    pp.pprint(state.output)
     # print(state.tainted_vars)
     # print(state.variables)
     pass
