@@ -1,1 +1,1 @@
-[]
+[{"vulnerability": "XSS", "source": "document.url", "sink": "sink1", "sanitizer": []}]
