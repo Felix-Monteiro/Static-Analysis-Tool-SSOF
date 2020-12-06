@@ -479,10 +479,13 @@ class MemberExpression:
         sources = []
         if(state.is_variable(self.__str__())):
             sources.extend(state.var_is_tainted(self.__str__()))
-        elif(state.is_source(self.object.__str__())):
-            sources.append(self.__str__())
-        elif(state.is_source(self.__str__())):
-            sources.append(self.__str__())
+        elif(isinstance(self.object, list)):
+            for option in self.object:
+                option_member = option + "." + self.property.__str__()
+                if(state.is_source(option)):
+                    sources.append(option)
+                elif(state.is_source(option_member)):
+                    sources.append(option_member)
 
         return list(set(sources))
        
@@ -510,10 +513,16 @@ class CallExpression:
         return self.__str__()
 
     def parse(self, statements):
-        self.callee = globals()[statements["callee"]["type"]]()
+        callee_type = statements["callee"]["type"]
+        self.callee = globals()[callee_type]()
         self.callee.parse(statements["callee"])
-
-        if(state.is_variable(self.callee.__str__())):
+        
+        if(callee_type == "MemberExpression" and isinstance(self.callee.object,list)):
+                callee = []
+                for option in self.callee.object:
+                    callee.append(option + "." + self.callee.property.__str__())
+                self.callee = callee
+        elif(state.is_variable(self.callee.__str__())):
             self.callee = state.get_variable(self.callee.__str__())
         else:
             self.callee = [self.callee.__str__()]
