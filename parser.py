@@ -236,13 +236,16 @@ class WhileStatement:
 
         state.add_scope(sources)
         prev_just_parse = state.just_parse
+        prev_in_optional = state.in_optional
         state.set_just_parse(True)
+        state.set_in_optional(True)
         self.body = globals()[statements["body"]["type"]]()
         self.body.parse(statements["body"])
         state.set_just_parse(False)
         self.body.parse(statements["body"])
 
         state.set_just_parse(prev_just_parse)
+        state.set_in_optional(prev_in_optional)
         state.remove_a_scope(sources)
         pass
         
@@ -313,14 +316,14 @@ class IfStatement:
 
         # commit variables but dont commit sinks
         previous_just_parse = state.just_parse
-        previous_in_optional = state.in_optional
+        prev_in_optional = state.in_optional
         state.set_in_optional(True)
         state.set_just_parse(True)
         self.consequent.parse(statements["consequent"])
         if(self.alternate):
             self.alternate.parse(statements["alternate"])
         state.set_just_parse(previous_just_parse)
-        state.set_in_optional(previous_in_optional)
+        state.set_in_optional(prev_in_optional)
         # commit variables but dont commit sinks
 
 
