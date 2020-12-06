@@ -1,0 +1,34 @@
+{
+    "type": "Program",
+    "body": [
+      {
+        "type": "ExpressionStatement",
+        "expression": {
+          "type": "CallExpression",
+          "callee": {
+            "type": "Identifier",
+            "name": "sink2"
+          },
+          "arguments": [
+            {
+              "type": "CallExpression",
+              "callee": {
+                "type": "MemberExpression",
+                "computed": false,
+                "object": {
+                  "type": "Identifier",
+                  "name": "inner"
+                },
+                "property": {
+                  "type": "Identifier",
+                  "name": "html"
+                }
+              },
+              "arguments": []
+            }
+          ]
+        }
+      }
+    ],
+    "sourceType": "script"
+  }

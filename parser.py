@@ -25,6 +25,7 @@ class State:
         self.patterns = None
         self.output = []
         self.just_parse = False
+        self.in_if = False
         pass
 
     def add_patterns(self, patterns):
@@ -35,8 +36,8 @@ class State:
         self.variables[var_name] = raw
         pass
 
-    def add_tainted_var(self, var_name, source):
-        self.tainted_vars[var_name] = source
+    def add_tainted_var(self, var_name, sources):
+        self.tainted_vars[var_name] = sources
         pass
 
     # append sources that are tainting the current scope 
@@ -64,6 +65,18 @@ class State:
     # }
     def set_just_parse(self, boolean):
         self.just_parse = boolean
+        pass
+
+    def set_in_if(self, boolean):
+        self.in_if = boolean
+        pass
+
+    def set_tainted_vars(self, tainted_vars):
+        self.tainted_vars = tainted_vars
+        pass
+
+    def set_variables(self, variables):
+        self.variables = variables
         pass
 
     def var_is_tainted(self, var_name):
@@ -95,6 +108,9 @@ class State:
 
     def get_variable(self, var_name):
         return self.variables[var_name]
+
+    def get_tainted_variable(self, var_name):
+        return self.tainted_vars[var_name]
 
     def check_sink(self,our_sink, our_source):
         sinks = []
@@ -131,6 +147,12 @@ class State:
     def get_sanitizer_and_source(self, sanitized_source):
         return sanitized_source.split(":")
 
+    def sanitize_variable(self, sanitizer_name, var_name):
+        if(self.var_is_tainted(var_name)):
+            sanitized = self.sanitize_sources(sanitizer_name, self.get_tainted_variable(var_name))
+            self.add_tainted_var(var_name, sanitized)
+        pass
+
     # receives sanitizer and list of sources to sanitize
     def sanitize_sources(self, sanitizer, sources):
         sanitized_sources = []
@@ -150,7 +172,7 @@ class State:
             return self.add_sanitizer(our_source, our_sanitizer)
         return our_source
 
-    # source -> sanitizer(source
+    # source -> sanitizer:source
     def add_sanitizer(self, source, sanitizer):
         return sanitizer + ":" + source
 
@@ -255,12 +277,25 @@ class IfStatement:
         
         state.add_scope(sources)
 
+        # dont commit variables 
+        state.set_in_if(True)
         self.consequent = globals()[statements["consequent"]["type"]]()
         self.consequent.parse(statements["consequent"])
 
         self.alternate = globals()[statements["alternate"]["type"]]()
         if(self.alternate):
             self.alternate.parse(statements["alternate"])
+        state.set_in_if(False)
+        # dont commit variables 
+
+        # commit variables but dont commit sinks
+        state.set_just_parse(True)
+        self.consequent.parse(statements["consequent"])
+        if(self.alternate):
+            self.alternate.parse(statements["alternate"])
+        state.set_just_parse(False)
+        # commit variables but dont commit sinks
+
         state.remove_a_scope(sources)
         pass
 
@@ -285,6 +320,12 @@ class ExpressionStatement:
     def is_source(self):
         return self.expression.is_source()
 
+    def sanitize(self, sanitizer_name):
+        self.expression.sanitize()
+        pass
+        
+
+
 class AssignmentExpression:
     def __init__(self):
         self.operator = ""
@@ -299,6 +340,10 @@ class AssignmentExpression:
         return self.__str__()
     
     def parse(self, statements):
+        if(state.in_if):
+            variables_before = state.variables
+            tainted_vars_before = state.tainted_vars
+
         self.operator = statements["operator"]
        
         left_type = statements["left"]["type"]
@@ -311,7 +356,7 @@ class AssignmentExpression:
         sources = self.right.is_source()
         # add sources that are tainting the scope
         sources.extend(state.scope)
-        
+        # dont commit variables inside ifs
         state.add_variable(self.left.__str__(), self.right.__str__())
         # is right has sources then had variable to tainted variables
         if(sources):
@@ -326,11 +371,22 @@ class AssignmentExpression:
         elif(left_type == "MemberExpression" and not state.just_parse):
             for source in sources:
                 state.check_sink(self.left.__str__(),source.__str__())
+
+        if(state.in_if):
+            state.set_variables(variables_before)
+            state.set_tainted_vars(tainted_vars_before)
+
         pass
 
     def is_source(self):
         return self.right.is_source()
 
+       
+    def sanitize(self, sanitizer_name):
+        self.left.sanitize()
+        self.right.sanitize()
+        pass
+        
 
 class BinaryExpression:
     def __init__(self):
@@ -361,6 +417,10 @@ class BinaryExpression:
         sources.extend(self.left.is_source())
         return list(set(sources))
 
+    # dont sanitize binary expressions
+    def sanitize(self, sanitizer_name):
+        pass
+        
 
 
 class MemberExpression:
@@ -400,7 +460,10 @@ class MemberExpression:
             sources.extend(state.var_is_tainted(self.__str__()))
 
         return list(set(sources))
-
+       
+    def sanitize(self, sanitizer_name):
+        pass
+        
 
 class CallExpression:
     def __init__(self):
@@ -418,8 +481,10 @@ class CallExpression:
     def parse(self, statements):
         self.callee = globals()[statements["callee"]["type"]]()
         self.callee.parse(statements["callee"])
+
         if(state.is_variable(self.callee.__str__())):
             self.callee = state.get_variable(self.callee.__str__())
+
         sources = []
         for argument in statements["arguments"]:
             argument_type = argument["type"]
@@ -428,6 +493,10 @@ class CallExpression:
             argument_obj.parse(argument)
             # get args that are sources
             sources.extend(argument_obj.is_source())
+            
+        if(state.is_sanitizer(self.callee.__str__())):
+            for argument in self.arguments:
+                argument.sanitize(self.callee.__str__())
         
         # add sources that are tainting the scope
         sources.extend(state.scope)
@@ -453,6 +522,11 @@ class CallExpression:
 
         return list(set(sources))
 
+    
+    def sanitize(self, sanitizer_name):
+        pass
+        
+
 class Identifier:
     def __init__(self):
         self.name = ""
@@ -471,6 +545,10 @@ class Identifier:
     def is_source(self):
         res = state.var_is_tainted(self.name)
         return ( [] if res == None else res)
+
+    def sanitize(self, sanitizer_name):
+        state.sanitize_variable(sanitizer_name, self.name)
+        pass
 
 
 class Literal:
@@ -493,5 +571,7 @@ class Literal:
     def is_source(self):
         return []
 
+    def sanitize(self, sanitizer_name):
+        pass
 
 state = State()

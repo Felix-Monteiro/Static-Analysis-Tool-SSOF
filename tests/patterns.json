@@ -5,7 +5,7 @@
   "sinks": ["sink1", "eheh", "document.url"]},
 
   {"vulnerability": "SQL",
-    "sources": ["source2"],
+    "sources": ["source2", "inner.html"],
     "sanitizers": ["escape"],
     "sinks": ["sink2"]}
 ]

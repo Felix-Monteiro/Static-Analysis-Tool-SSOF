@@ -1,1 +1,2 @@
-a = document.url.b + sink1
+a = source1() + sanitize(source1())
+sink1(a)

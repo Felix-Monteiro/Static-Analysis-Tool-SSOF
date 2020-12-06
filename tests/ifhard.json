@@ -4,8 +4,12 @@
       {
         "type": "IfStatement",
         "test": {
-          "type": "Identifier",
-          "name": "bla"
+          "type": "CallExpression",
+          "callee": {
+            "type": "Identifier",
+            "name": "source2"
+          },
+          "arguments": []
         },
         "consequent": {
           "type": "BlockStatement",
@@ -48,6 +52,105 @@
                   "name": "sink1"
                 }
               }
+            },
+            {
+              "type": "ExpressionStatement",
+              "expression": {
+                "type": "AssignmentExpression",
+                "operator": "=",
+                "left": {
+                  "type": "Identifier",
+                  "name": "c"
+                },
+                "right": {
+                  "type": "CallExpression",
+                  "callee": {
+                    "type": "Identifier",
+                    "name": "source1"
+                  },
+                  "arguments": []
+                }
+              }
+            },
+            {
+              "type": "ExpressionStatement",
+              "expression": {
+                "type": "CallExpression",
+                "callee": {
+                  "type": "Identifier",
+                  "name": "sanitize"
+                },
+                "arguments": [
+                  {
+                    "type": "Identifier",
+                    "name": "c"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "ExpressionStatement",
+              "expression": {
+                "type": "CallExpression",
+                "callee": {
+                  "type": "Identifier",
+                  "name": "sink1"
+                },
+                "arguments": [
+                  {
+                    "type": "Identifier",
+                    "name": "c"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "ExpressionStatement",
+        "expression": {
+          "type": "CallExpression",
+          "callee": {
+            "type": "Identifier",
+            "name": "sink1"
+          },
+          "arguments": [
+            {
+              "type": "Identifier",
+              "name": "a"
+            }
+          ]
+        }
+      },
+      {
+        "type": "ExpressionStatement",
+        "expression": {
+          "type": "CallExpression",
+          "callee": {
+            "type": "Identifier",
+            "name": "sanitize"
+          },
+          "arguments": [
+            {
+              "type": "Identifier",
+              "name": "a"
+            }
+          ]
+        }
+      },
+      {
+        "type": "ExpressionStatement",
+        "expression": {
+          "type": "CallExpression",
+          "callee": {
+            "type": "Identifier",
+            "name": "sanitize"
+          },
+          "arguments": [
+            {
+              "type": "Identifier",
+              "name": "f"
             }
           ]
         }
@@ -64,6 +167,46 @@
             {
               "type": "Identifier",
               "name": "a"
+            }
+          ]
+        }
+      },
+      {
+        "type": "ExpressionStatement",
+        "expression": {
+          "type": "CallExpression",
+          "callee": {
+            "type": "Identifier",
+            "name": "sink2"
+          },
+          "arguments": [
+            {
+              "type": "MemberExpression",
+              "computed": false,
+              "object": {
+                "type": "Identifier",
+                "name": "inner"
+              },
+              "property": {
+                "type": "Identifier",
+                "name": "html"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "ExpressionStatement",
+        "expression": {
+          "type": "CallExpression",
+          "callee": {
+            "type": "Identifier",
+            "name": "sink2"
+          },
+          "arguments": [
+            {
+              "type": "Identifier",
+              "name": "b"
             }
           ]
         }
