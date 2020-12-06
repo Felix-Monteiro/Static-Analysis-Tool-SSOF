@@ -25,7 +25,7 @@ class State:
         self.patterns = None
         self.output = []
         self.just_parse = False
-        self.in_if = False
+        self.in_optional = False
         pass
 
     def add_patterns(self, patterns):
@@ -37,13 +37,23 @@ class State:
         pass
 
     def add_tainted_var(self, var_name, sources):
-        self.tainted_vars[var_name] = sources
+        if(self.in_optional and self.var_is_tainted(var_name)):
+            self.tainted_vars[var_name].extend(sources)
+        else:
+            self.tainted_vars[var_name] = sources
+        self.tainted_vars[var_name] = list(set(self.tainted_vars[var_name]))
         pass
 
     # append sources that are tainting the current scope 
     def add_scope(self, sources):
         self.scope.extend(sources)
         pass
+
+    def get_variables(self):
+        return self.variables.copy()
+
+    def get_tainted_vars(self):
+        return self.tainted_vars.copy()
 
     # remove sources that are no longer tainting the current scope
     def remove_a_scope(self, sources):
@@ -52,7 +62,8 @@ class State:
         pass
     
     def remove_tainted_var(self, var_name):
-        self.tainted_vars.pop(var_name)
+        if(not self.in_optional):
+            self.tainted_vars.pop(var_name)
         pass
 
     # When we want to only parse, not find sinks
@@ -67,8 +78,8 @@ class State:
         self.just_parse = boolean
         pass
 
-    def set_in_if(self, boolean):
-        self.in_if = boolean
+    def set_in_optional(self, boolean):
+        self.in_optional = boolean
         pass
 
     def set_tainted_vars(self, tainted_vars):
@@ -277,24 +288,41 @@ class IfStatement:
         
         state.add_scope(sources)
 
-        # dont commit variables 
-        state.set_in_if(True)
+        # dont commit variables but commit sinks
+        variables_before = state.get_variables()
+        tainted_vars_before = state.get_tainted_vars()
+
         self.consequent = globals()[statements["consequent"]["type"]]()
         self.consequent.parse(statements["consequent"])
+        
+        state.set_variables(variables_before)
+        state.set_tainted_vars(tainted_vars_before)
 
-        self.alternate = globals()[statements["alternate"]["type"]]()
+        variables_before = state.get_variables()
+        tainted_vars_before = state.get_tainted_vars()
+
+        if(statements["alternate"]):
+            self.alternate = globals()[statements["alternate"]["type"]]()
         if(self.alternate):
             self.alternate.parse(statements["alternate"])
-        state.set_in_if(False)
-        # dont commit variables 
+
+        state.set_variables(variables_before)
+        state.set_tainted_vars(tainted_vars_before)
+        # dont commit variables but commit sinks
+
 
         # commit variables but dont commit sinks
+        previous_just_parse = state.just_parse
+        previous_in_optional = state.in_optional
+        state.set_in_optional(True)
         state.set_just_parse(True)
         self.consequent.parse(statements["consequent"])
         if(self.alternate):
             self.alternate.parse(statements["alternate"])
-        state.set_just_parse(False)
+        state.set_just_parse(previous_just_parse)
+        state.set_in_optional(previous_in_optional)
         # commit variables but dont commit sinks
+
 
         state.remove_a_scope(sources)
         pass
@@ -340,10 +368,7 @@ class AssignmentExpression:
         return self.__str__()
     
     def parse(self, statements):
-        if(state.in_if):
-            variables_before = state.variables
-            tainted_vars_before = state.tainted_vars
-
+        
         self.operator = statements["operator"]
        
         left_type = statements["left"]["type"]
@@ -358,7 +383,7 @@ class AssignmentExpression:
         sources.extend(state.scope)
         # dont commit variables inside ifs
         state.add_variable(self.left.__str__(), self.right.__str__())
-        # is right has sources then had variable to tainted variables
+        # if right has sources then had variable to tainted variables
         if(sources):
             state.add_tainted_var(self.left.__str__(), sources)
 
@@ -371,11 +396,6 @@ class AssignmentExpression:
         elif(left_type == "MemberExpression" and not state.just_parse):
             for source in sources:
                 state.check_sink(self.left.__str__(),source.__str__())
-
-        if(state.in_if):
-            state.set_variables(variables_before)
-            state.set_tainted_vars(tainted_vars_before)
-
         pass
 
     def is_source(self):
