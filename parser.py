@@ -141,17 +141,15 @@ class State:
             if(our_source in vulnerability["sources"]):
                 sinks = vulnerability["sinks"]
                 our_vulnerability = vulnerability["vulnerability"]
-                break
-
-        # if sink is related to this source, then add it to result
-        if(our_sink.find('.') == -1 and our_sink in sinks):
-            self.add_vuln(our_vulnerability, our_source, our_sink, our_sanitizers)
-        # for examples like our_sink: document.url.a  sink: document.url 
-        elif(our_sink.find('.') != -1):
-            for sink in sinks:
-                if(our_sink.find(sink) != -1):
-                    self.add_vuln(our_vulnerability, our_source, sink, our_sanitizers)
-                    break
+                # if sink is related to this source, then add it to result
+                if(our_sink.find('.') == -1 and our_sink in sinks):
+                    self.add_vuln(our_vulnerability, our_source, our_sink, our_sanitizers)
+                # for examples like our_sink: document.url.a  sink: document.url 
+                elif(our_sink.find('.') != -1):
+                    for sink in sinks:
+                        if(our_sink.find(sink) != -1):
+                            self.add_vuln(our_vulnerability, our_source, sink, our_sanitizers)
+                            break
         pass
 
     # add vulnerability to output
