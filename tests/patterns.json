@@ -1,8 +1,8 @@
 [
-  {"vulnerability": "Command Injection",
-  "sources": ["source1", "document.url.b"],
-  "sanitizers": ["escape", "sanitize"],
-  "sinks": ["sink1", "eheh", "document.url"]},
+  {"vulnerability": "XSS",
+  "sources": ["source1", "document.url","document.location"],
+  "sanitizers": ["escape", "sanitize","encodeURI"],
+  "sinks": ["sink1", "eval", "document.write","document.innerHTML"]},
 
   {"vulnerability": "SQL",
     "sources": ["source2", "inner.html"],
