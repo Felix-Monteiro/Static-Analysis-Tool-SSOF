@@ -1,0 +1,1 @@
+[{"vulnerability": "XSS", "source": "document.location", "sink": "eval", "sanitizer": []}, {"vulnerability": "XSS", "source": "document.url", "sink": "eval", "sanitizer": []}]
