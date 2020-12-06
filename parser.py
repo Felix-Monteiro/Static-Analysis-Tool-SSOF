@@ -452,16 +452,22 @@ class MemberExpression:
 
     def is_source(self):
         sources = []
-        if(state.is_source(self.object.__str__())):
+        if(state.is_variable(self.__str__())):
+            sources.extend(state.var_is_tainted(self.__str__()))
+        elif(state.is_source(self.object.__str__())):
             sources.append(self.__str__())
         elif(state.is_source(self.__str__())):
             sources.append(self.__str__())
-        if(state.is_variable(self.__str__())):
-            sources.extend(state.var_is_tainted(self.__str__()))
 
         return list(set(sources))
        
     def sanitize(self, sanitizer_name):
+        member_name = self.__str__()
+        if(state.is_source(member_name)):
+            if(not state.is_variable(member_name)):
+                state.add_variable(member_name, member_name)
+                state.add_tainted_var(member_name, [member_name])
+            state.sanitize_variable(sanitizer_name, member_name)
         pass
         
 

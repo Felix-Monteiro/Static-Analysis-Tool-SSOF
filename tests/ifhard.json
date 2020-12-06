@@ -145,12 +145,20 @@
           "type": "CallExpression",
           "callee": {
             "type": "Identifier",
-            "name": "sanitize"
+            "name": "escape"
           },
           "arguments": [
             {
-              "type": "Identifier",
-              "name": "f"
+              "type": "MemberExpression",
+              "computed": false,
+              "object": {
+                "type": "Identifier",
+                "name": "inner"
+              },
+              "property": {
+                "type": "Identifier",
+                "name": "html"
+              }
             }
           ]
         }

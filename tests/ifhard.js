@@ -8,7 +8,7 @@ if(source2()) {
 }
 sink1(a)
 sanitize(a)
-sanitize(f)
+escape(inner.html)
 b(a)
 sink2(inner.html)
 sink2(b)
