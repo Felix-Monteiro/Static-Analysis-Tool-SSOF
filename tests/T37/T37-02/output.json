@@ -1,0 +1,1 @@
+[{"vulnerability": "XSS", "source": "source1", "sink": "sink1", "sanitizer": []}]

@@ -1,1 +1,0 @@
-sink2(inner.html)

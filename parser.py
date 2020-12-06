@@ -11,10 +11,10 @@ def main(argv):
     state.add_patterns(patterns_dict)
     program = Program()
     program.parse(program_dict)
-    pp = pprint.PrettyPrinter(indent=2)
-    pp.pprint(state.output)
-    # print(state.tainted_vars)
-    # print(state.variables)
+    print(json.dumps(state.output))
+
+    #print(state.tainted_vars)
+    #print(state.variables)
     pass
 
 
@@ -154,7 +154,7 @@ class State:
 
     # add vulnerability to output
     def add_vuln(self, vulnerability, source, sink, sanitizer):
-        self.output.append({'vulnerability': vulnerability ,'source': source, 'sink': sink, 'sanitizer':sanitizer})
+        self.output.append({"vulnerability": vulnerability ,"source": source, "sink": sink, "sanitizer":sanitizer})
         pass
 
     # get sanitized source and return list [santizer, source]
